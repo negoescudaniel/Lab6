@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include"liste.h"
 struct N
-{   int num;
+{
+    int num;
     char type;
     struct N *right,*left;
 };
@@ -63,20 +64,25 @@ void preorder (Nod *root,Node **prim)
 
 void preorder1(Nod *root,Node **prim,char t,int m)
 {
-    if(root->left==NULL&&root->right==NULL&&root->num==m&&root->type==t)
-    {
-        //printf("%c%d: ",root->type,root->num);
-        display(*prim);
-    }
-    else
-    {
-        addAtEnd(prim,'d');
-        preorder1(root->left,prim,t,m);
-        deleteLast(*prim);
-        addAtEnd(prim,'n');
-        preorder1(root->right,prim,t,m);
-        deleteLast(*prim);
-    }
+    if(root->left==NULL&&root->right==NULL)
+            {
+                char a=root->type;
+                int b=root->num;
+                //printf("%c  %d    \n",t,m);
+                //printf("%c  %d    \n",root->type,root->num);
+                //printf("%c%d: ",root->type,root->num);
+                if(a==t&&b==m)
+                    display(*prim);
+            }
+            else
+            {
+                addAtEnd(prim,'d');
+                preorder1(root->left,prim,t,m);
+                deleteLast(*prim);
+                addAtEnd(prim,'n');
+                preorder1(root->right,prim,t,m);
+                deleteLast(*prim);
+            }
 }
 
 void prerot(Nod *root)
@@ -89,14 +95,14 @@ void prerot(Nod *root)
     preorder (root->right,&prim);
 }
 
-void prerot1(Nod *root,char t,int m)
+void prerot1(Nod *root,char v,int w)
 {
     Node *prim=NULL;
     addAtEnd(&prim,'d');
-    preorder1(root->left,&prim,t,m);
+    preorder1(root->left,&prim,v,w);
     deleteList(&prim);
     addAtEnd(&prim,'n');
-    preorder1(root->right,&prim,t,m);
+    preorder1(root->right,&prim,v,w);
 }
 
 struct frunze
@@ -104,36 +110,46 @@ struct frunze
     int nr, cai;
     char C;
 };
+
 void search1(Nod *root,struct frunze **q,int *n)
 {
-    if(root->left==NULL&&root->right==NULL){
-    int ok=1;
-    for(int i=0; i<(*n); i++)
+    if(root->left==NULL&&root->right==NULL)
     {
-        if((q[i]->nr==root->num)&&(q[i]->C==root->type))
+        if((*n)!=0) //vectorul de Tipuri de frunze nu e gol
         {
-            (q[i]->cai)++;
-            ok=0;
-        }
-    }
-    if(ok==1)
-    {   if((*n)!=0){
-        *q=realloc(*q,((*n)+1)*sizeof(struct frunze));
-        q[*n]->C=root->type;
-        q[*n]->nr=root->num;
-        q[*n]->cai=0;
-         (*n)++;
-        }else{
-        *q=malloc(((*n)+1)*sizeof(struct frunze));
-        q[*n]->C=root->type;
-        q[*n]->nr=root->num;
-        q[*n]->cai=0;
+            int ok1=1;//presupun ca nu se gaseste frunza in vectorul de frunze
+            for(int i=0; i<(*n); i++)
+            {
+                if(((*q)[i].nr==root->num)&&((*q)[i].C==root->type))
+                {
+                    ((*q)[i].cai)++;
+                    ok1=0;
+                    break;
+                }
+            }
+            //Daca nu se gaseste alocam spatiu pentru un nou elem in vector
+            if(ok1==1)
+            {
+                *q=realloc(*q,((*n)+1)*sizeof(struct frunze));
+                (*q)[*n].C=root->type;
+                (*q)[*n].nr=root->num;
+                (*q)[*n].cai=1;
                 (*n)++;
+            }
+        }
+        else //vectorul de Tipuri de frunze e gol
+        {
+            *q=malloc(((*n)+1)*sizeof(struct frunze));
+            (*q)[*n].C=root->type;
+            (*q)[*n].nr=root->num;
+            (*q)[*n].cai=1;
+            (*n)++;
         }
     }
-    }else{
-    search1(root->left,q,n);
-    search1(root->left,q,n);
+    else
+    {
+        search1(root->left,q,n);
+        search1(root->right,q,n);
     }
 }
 void TRD(Nod *root)
@@ -141,7 +157,9 @@ void TRD(Nod *root)
     struct frunze *p=NULL;
     int n=0;
     search1(root,&p,&n);
-    for(int i=0;i<n;i++){
+    for(int i=0; i<n; i++)
+    {
+        printf("\n");
         printf("%c%d: %d cai\n",p[i].C,p[i].nr,p[i].cai);
         prerot1(root,p[i].C,p[i].nr);
     }
